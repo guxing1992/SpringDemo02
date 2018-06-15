@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
+        http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.3.xsd
+        http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.3.xsd    ">
+	<bean id="propertyConfigurer"
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>classpath*:mysql.propeties</value>
+			</list>
+		</property>
+
+	</bean>
+	<bean id="dataSourceW"
+		class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+		<property name="driverClassName">
+			<value>com.mysql.jdbc.Driver</value>
+		</property>
+		<property name="url" value="${jdbc.url.write}" />
+		<property name="username" value="${jdbc.user.write}" />
+		<property name="password" value="${jdbc.password.write}" />
+	</bean>
+	<bean id="dataSourceR"
+		class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+		<property name="driverClassName">
+			<value>com.mysql.jdbc.Driver</value>
+		</property>
+		<property name="url" value="${jdbc.url.read}" />
+		<property name="username" value="${jdbc.user.read}" />
+		<property name="password" value="${jdbc.password.read}" />
+	</bean>
+
+	<bean id="dynamicDataSource"
+		class="com.test.myspring.dynamicdatasource.DynamicDataSource">
+		<property name="targetDataSources">
+			<map key-type="java.lang.String">
+				<!-- 指定lookupKey和与之对应的数据源 -->
+				<entry key="write" value-ref="dataSourceW"></entry>
+				<entry key="read" value-ref="dataSourceR"></entry>
+			</map>
+		</property>
+		<!-- 这里可以指定默认的数据源 -->
+		<property name="defaultTargetDataSource" ref="dataSourceR" />
+	</bean>
+	
+	<bean id="sqlSessionFatory" name="sqlSessionFatory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dynamicDataSource"></property>
+		<property name="mapperLocations">
+			<value>classpath*:com/test/myspring/xml/*.xml</value>
+		</property>
+		<property name="typeAliasesPackage" value="com.test.myspring.vo"></property>
+	</bean>
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.test.myspring.dao"></property>
+		<property name="sqlSessionFactoryBeanName" value="sqlSessionFatory"></property>
+	</bean>
+	<bean id="dataSourceAspectJ" class="com.test.myspring.dynamicdatasource.DataSourceAspectJ"></bean>
+	<context:component-scan base-package="com.test.myspring"></context:component-scan>
+	<aop:aspectj-autoproxy></aop:aspectj-autoproxy>
+</beans>

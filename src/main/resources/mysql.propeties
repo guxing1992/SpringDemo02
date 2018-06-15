@@ -1,0 +1,7 @@
+jdbc.url.write=jdbc:mysql://localhost:3306/db1
+jdbc.user.write=root
+jdbc.password.write=123456
+
+jdbc.url.read=jdbc:mysql://localhost:3306/db2
+jdbc.user.read=root
+jdbc.password.read=123456
